@@ -1,5 +1,3 @@
-import argparse
-import webbrowser
 import json
 import pathlib
 import re
@@ -12,14 +10,14 @@ import boto3
 sts = boto3.client('sts')
 
 
-def assume_role_with_saml(saml_response: str, role_arn: str) -> Path:
+def assume_role_with_saml(saml_response: str, role_arn: str, principal_name: str) -> Path:
     m = re.search(r'(\d+)', role_arn)
     account = m.group(0)
 
     response = sts.assume_role_with_saml(
         RoleArn=role_arn,
         PrincipalArn='arn:aws:iam::{account}:saml-provider/{PrincipalName}'.format(
-            account=account, PrincipalName=args.PrincipalName
+            account=account, PrincipalName=principal_name
         ),
         SAMLAssertion=saml_response,
         DurationSeconds=3600 * 12
@@ -37,6 +35,7 @@ def assume_role_with_saml(saml_response: str, role_arn: str) -> Path:
 
 
 class MyHttpRequestHandler(SimpleHTTPRequestHandler):
+    principal_name: str
 
     def do_POST(self):
         content_length = int(self.headers['Content-Length'])  # <--- Gets the size of data
@@ -47,7 +46,9 @@ class MyHttpRequestHandler(SimpleHTTPRequestHandler):
         if self.path == '/saml':
             status = 200
             try:
-                target_dir = assume_role_with_saml(request_dict['SAMLResponse'], request_dict['roleARN'])
+                target_dir = assume_role_with_saml(
+                    request_dict['SAMLResponse'], request_dict['roleARN'], self.principal_name
+                )
                 body = {'target_dir': str(target_dir)}
             except Exception as e:
                 status = 400
@@ -62,20 +63,9 @@ class MyHttpRequestHandler(SimpleHTTPRequestHandler):
             self.send_error(404, self.path)
 
 
-def run_server(server_class=HTTPServer, handler_class=MyHttpRequestHandler):
+def run(principal_name: str):
     server_address = ('127.0.0.1', 9123)
     print(f'Starting assume_role_with_saml at {server_address}')
-    httpd = server_class(server_address, handler_class)
+    MyHttpRequestHandler.principal_name = principal_name
+    httpd = HTTPServer(server_address, MyHttpRequestHandler)
     httpd.serve_forever()
-
-
-parser = argparse.ArgumentParser()
-parser.add_argument('--LoginPage', type=str,
-                    help='The page which redirects to https://signin.aws.amazon.com/saml')
-parser.add_argument('--PrincipalName', required=True, type=str,
-                    help='The Name of the SAML provider in IAM that describes the IdP.')
-args = parser.parse_args()
-
-if args.LoginPage:
-    webbrowser.open_new(args.LoginPage)
-run_server()

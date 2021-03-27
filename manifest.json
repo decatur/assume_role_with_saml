@@ -1,6 +1,6 @@
 {
   "name": "assume_role_with_saml",
-  "description": "Creates temporary AWS security credentials from a SAML authentication response.",
+  "description": "Create temporary AWS security credentials from a SAML authentication response.",
   "version": "0.1",
   "manifest_version": 3,
   "permissions": ["scripting"],
