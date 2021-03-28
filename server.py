@@ -63,9 +63,9 @@ class MyHttpRequestHandler(SimpleHTTPRequestHandler):
             self.send_error(404, self.path)
 
 
-def run(principal_name: str):
+def run(identity_provider_name: str):
     server_address = ('127.0.0.1', 9123)
-    print(f'Starting assume_role_with_saml at {server_address}')
-    MyHttpRequestHandler.principal_name = principal_name
+    print(f'Starting assume_role_with_saml at {server_address}.\nWaiting for web client extension requests ...')
+    MyHttpRequestHandler.principal_name = identity_provider_name
     httpd = HTTPServer(server_address, MyHttpRequestHandler)
     httpd.serve_forever()
