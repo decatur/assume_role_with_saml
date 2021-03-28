@@ -11,13 +11,12 @@ sts = boto3.client('sts')
 
 
 def assume_role_with_saml(saml_response: str, role_arn: str, principal_name: str) -> Path:
-    m = re.search(r'(\d+)', role_arn)
-    account = m.group(0)
+    account_number = re.search(r'(\d+)', role_arn).group(0)
 
     response = sts.assume_role_with_saml(
         RoleArn=role_arn,
         PrincipalArn='arn:aws:iam::{account}:saml-provider/{PrincipalName}'.format(
-            account=account, PrincipalName=principal_name
+            account=account_number, PrincipalName=principal_name
         ),
         SAMLAssertion=saml_response,
         DurationSeconds=3600 * 12
@@ -38,7 +37,7 @@ class MyHttpRequestHandler(SimpleHTTPRequestHandler):
     principal_name: str
 
     def do_POST(self):
-        content_length = int(self.headers['Content-Length'])  # <--- Gets the size of data
+        content_length = int(self.headers['Content-Length'])
         request_body = self.rfile.read(content_length).decode('utf-8')
         print(request_body)
         request_dict = json.loads(request_body)
