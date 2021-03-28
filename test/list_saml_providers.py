@@ -1,6 +1,2 @@
-import boto3
-import pprint
-
-iam = boto3.client('iam')
-response = iam.list_saml_providers()
-pprint.pprint(response)
+import boto3, pprint
+pprint.pprint(boto3.client('iam').list_saml_providers())

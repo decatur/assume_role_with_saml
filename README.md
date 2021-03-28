@@ -5,7 +5,7 @@ Create temporary AWS security credentials from a SAML authentication response.
 3. This login page will eventually redirect you to the Amazon Web Services Sign-In page.
 4. From there you select the AWS account and role for which to open the AWS Console.
 
-The assume_role_with_saml project provides a Chrome Extension content script adding a `Assume Role` button to Amazon Web
+The assume_role_with_saml project provides a Chrome Extension content script adding an `Assume Role` button to Amazon Web
 Services Sign-In page:
 ![signin.png](signin.png)
 
@@ -28,7 +28,7 @@ You install less than 150 lines of code with no external dependencies except `bo
 
 # Configure
 
-Provide a starter script of the form
+Provide a starter script (I call it `my_assume_role.py`) of the form
 
 ````
 import webbrowser
@@ -39,13 +39,19 @@ webbrowser.open_new('https://my_enterprise_login_page')
 server.run(identity_provider_name='my_identity_provider_name')
 ````
 
-Constructs a PrincipalArn of the form 'arn:aws:iam::{my_account}:saml-provider/{identity_provider_name}'
 You get a list of Identity providers on [AWS IAM -> Identity providers](https://console.aws.amazon.com/iamv2/home?#/identity_providers)
+or with
+
+````
+import boto3, pprint
+pprint.pprint(boto3.client('iam').list_saml_providers())
+````
 
 # Run
 
+My prefered way on MS-Windows is
 ````
-C:\ws\tools\PortableGit\git-bash.exe -c "cd c:/ws/projects/assume_role_with_saml; venv/scripts/python.exe my_assume_role.py"
+git-bash.exe -c "cd c:/ws/projects/assume_role_with_saml; venv/scripts/python.exe my_assume_role.py"
 ````
 
 # Security Considerations
@@ -55,7 +61,7 @@ Due to its local nature, no attack vectors are added.
 However, a user may inadvertently click the `Assume Role` button. The user will then not realize that the
 shared AWS credentials were changed. AWS SDK API calls may now run on an account the user does not expect.
 
-The Chrome extension is **not** on the Chrome Web Store, because extensions there are notoriously difficult to audit.
+⚠ The Chrome extension is **not** on the Chrome Web Store, because extensions there are notoriously difficult to audit.
 Instead, I urge you to install the extension locally **after** you do a code audit.  
 
 # Related Work
