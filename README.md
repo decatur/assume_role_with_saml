@@ -49,9 +49,10 @@ pprint.pprint(boto3.client('iam').list_saml_providers())
 
 # Run
 
-My prefered way on MS-Windows is
+My prefered way on MS-Windows is a shortcut amounting to
 ````
-git-bash.exe -c "cd c:/ws/projects/assume_role_with_saml; venv/scripts/python.exe my_assume_role.py"
+cd c:/ws/projects/assume_role_with_saml
+venv/scripts/python.exe my_assume_role.py
 ````
 
 # Security Considerations

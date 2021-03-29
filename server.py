@@ -23,14 +23,14 @@ def assume_role_with_saml(saml_response: str, role_arn: str, principal_name: str
     )
     pprint(response)
     credentials = response['Credentials']
-    target_dir = (pathlib.Path.home() / '.aws' / 'credentials')
-    target_dir.write_text("\n".join([
+    credentials_ini = (pathlib.Path.home() / '.aws' / 'credentials')
+    credentials_ini.write_text("\n".join([
         '[default]',
         'aws_access_key_id=' + credentials['AccessKeyId'],
         'aws_secret_access_key=' + credentials['SecretAccessKey'],
         'aws_session_token=' + credentials['SessionToken']]))
 
-    return target_dir
+    return credentials_ini
 
 
 class MyHttpRequestHandler(SimpleHTTPRequestHandler):
@@ -45,10 +45,10 @@ class MyHttpRequestHandler(SimpleHTTPRequestHandler):
         if self.path == '/saml':
             status = 200
             try:
-                target_dir = assume_role_with_saml(
+                credentials_ini = assume_role_with_saml(
                     request_dict['SAMLResponse'], request_dict['roleARN'], self.principal_name
                 )
-                body = {'target_dir': str(target_dir)}
+                body = {'credentials_ini': str(credentials_ini)}
             except Exception as e:
                 status = 400
                 body = {'error': str(e)}
