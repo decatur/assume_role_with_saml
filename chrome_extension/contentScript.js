@@ -47,5 +47,8 @@ b.onclick = () => {
         })
         .catch(e => {
           status.textContent = `⚠ ${url}: ${e}`;
+          if (e.name === 'TypeError') {
+              status.textContent += '; Did you start the assume role server?';
+          }
         });
 };
