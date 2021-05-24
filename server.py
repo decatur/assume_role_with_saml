@@ -10,6 +10,8 @@ import boto3
 
 sts = boto3.client('sts')
 
+accounts_by_number = {}
+
 
 def assume_role_with_saml(saml_response: str, role_arn: str, principal_name: str) -> Path:
     account_number = re.search(r'(\d+)', role_arn).group(0)
@@ -29,7 +31,9 @@ def assume_role_with_saml(saml_response: str, role_arn: str, principal_name: str
     cp = ConfigParser()
     cp.read(credentials_ini)
 
-    for section in {'default', account_number}:
+    account_name = accounts_by_number.get(account_number, account_number)
+
+    for section in {'default', account_name}:
         cp.remove_section(section)
         cp.add_section(section)
         cp.set(section, 'aws_access_key_id', credentials['AccessKeyId'])
@@ -77,7 +81,3 @@ def run(identity_provider_name: str):
     MyHttpRequestHandler.principal_name = identity_provider_name
     httpd = HTTPServer(server_address, MyHttpRequestHandler)
     httpd.serve_forever()
-
-
-if __name__ == '__main__':
-    run(identity_provider_name='meshstack-saml-idp')
