@@ -1,6 +1,7 @@
 import json
 import pathlib
 import re
+from configparser import ConfigParser
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
 from pprint import pprint
@@ -23,12 +24,20 @@ def assume_role_with_saml(saml_response: str, role_arn: str, principal_name: str
     )
     pprint(response)
     credentials = response['Credentials']
+
     credentials_ini = (pathlib.Path.home() / '.aws' / 'credentials')
-    credentials_ini.write_text("\n".join([
-        '[default]',
-        'aws_access_key_id=' + credentials['AccessKeyId'],
-        'aws_secret_access_key=' + credentials['SecretAccessKey'],
-        'aws_session_token=' + credentials['SessionToken']]))
+    cp = ConfigParser()
+    cp.read(credentials_ini)
+
+    for section in {'default', account_number}:
+        cp.remove_section(section)
+        cp.add_section(section)
+        cp.set(section, 'aws_access_key_id', credentials['AccessKeyId'])
+        cp.set(section, 'aws_secret_access_key', credentials['SecretAccessKey'])
+        cp.set(section, 'aws_session_token', credentials['SessionToken'])
+
+    with open(credentials_ini, mode='w') as fo:
+        cp.write(fo)
 
     return credentials_ini
 
@@ -68,3 +77,7 @@ def run(identity_provider_name: str):
     MyHttpRequestHandler.principal_name = identity_provider_name
     httpd = HTTPServer(server_address, MyHttpRequestHandler)
     httpd.serve_forever()
+
+
+if __name__ == '__main__':
+    run(identity_provider_name='meshstack-saml-idp')
