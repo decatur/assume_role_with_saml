@@ -1,3 +1,4 @@
+web_client
 my_start_server.py
 
 __pycache__/
@@ -5,5 +6,5 @@ __pycache__/
 *$py.class
 
 .idea/
-.venv
+venv
 
