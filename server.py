@@ -9,7 +9,7 @@ from pprint import pprint
 import boto3
 
 sts = boto3.client('sts')
-
+httpd: HTTPServer = None
 accounts_by_number = {}
 
 
@@ -44,6 +44,15 @@ def assume_role_with_saml(saml_response: str, role_arn: str, principal_name: str
         cp.write(fo)
 
     return credentials_ini
+    
+    
+def stop():
+    from threading import Thread
+    def fn():
+        httpd.shutdown()
+        httpd.server_close()
+        
+    Thread(target=fn).start()
 
 
 class MyHttpRequestHandler(SimpleHTTPRequestHandler):
@@ -71,11 +80,13 @@ class MyHttpRequestHandler(SimpleHTTPRequestHandler):
             self.send_header('Content-type', 'application/json')
             self.end_headers()
             self.wfile.write(bytes(json.dumps(body), encoding='utf8'))
+            stop()
         else:
             self.send_error(404, self.path)
 
 
 def run(identity_provider_name: str):
+    global httpd
     server_address = ('127.0.0.1', 9123)
     print(f'Starting assume_role_with_saml at {server_address}.\nWaiting for web client extension requests ...')
     MyHttpRequestHandler.principal_name = identity_provider_name

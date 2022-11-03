@@ -43,6 +43,8 @@ b.onclick = () => {
                 status.textContent = `⚠ ${url}: ${data.error}`;
             } else {
                 status.textContent = `${url}: ${JSON.stringify(data)}`;
+                // Dummy request to shutdown Python HTTPServer
+                fetch(url, { method: 'GET' }).then(_ => {});
             }
         })
         .catch(e => {
